@@ -44,3 +44,9 @@ out/
 
 ### Graphite ###
 /graphite_data/
+
+### Environment files ###
+.env
+.env.*
+!.env.example
+

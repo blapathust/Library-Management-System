@@ -1,15 +1,15 @@
 import { Book as BookType } from "../data/books";
 import { Author as AuthorType } from "../data/authors";
 import { Category as CategoryType } from "../data/categories";
-import authors from "../data/authors";
-import categories from "../data/categories";
 
 interface BookProps {
     book: BookType;
+    authors?: AuthorType[];
+    categories?: CategoryType[];
     onBorrowClick?: (book: BookType) => void;
 }
 
-export default function Book({ book, onBorrowClick }: BookProps) {
+export default function Book({ book, authors = [], categories = [], onBorrowClick }: BookProps) {
     const handleBorrowClick = (e: React.MouseEvent) => {
         e.preventDefault();
         if (onBorrowClick) {
@@ -23,7 +23,7 @@ export default function Book({ book, onBorrowClick }: BookProps) {
         <p className="text-gray-500 text-sm">
             {
                 book.authorIds.map((authorId: number) => {
-                    const author = authors.find((author: AuthorType) => author.id === authorId);
+                    const author = authors.find((a: AuthorType) => a.id === authorId);
                     return author ? author.name : "Unknown Author";
                 }).join(", ")
             }
@@ -31,7 +31,7 @@ export default function Book({ book, onBorrowClick }: BookProps) {
         <p className="text-gray-500 text-sm mb-2">
             {
                 book.categoryIds.map((categoryId: number) => {
-                    const category = categories.find((category: CategoryType) => category.id === categoryId);
+                    const category = categories.find((c: CategoryType) => c.id === categoryId);
                     return category ? category.name : "Unknown Category";
                 }).join(", ")
             }

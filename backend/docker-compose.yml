@@ -1,0 +1,62 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+      - CORS_ORIGINS=${CORS_ORIGINS}
+      - DDL_AUTO=${DDL_AUTO}
+      - SQL_INIT_MODE=${SQL_INIT_MODE}
+      - SHOW_SQL=${SHOW_SQL}
+      - STATSD_HOST=graphite
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: always
+    env_file:
+      - .env
+
+  postgres:
+    image: 'postgres:15-alpine'
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER}" ]
+      interval: 5s
+      retries: 5
+      timeout: 3s
+    restart: always
+    env_file:
+      - .env
+
+  graphite:
+    image: 'graphiteapp/graphite-statsd:latest'
+    ports:
+      # Only expose the web interface
+      - '81:80'
+      # Do not expose statsd UDP port 8125 to the host; the app container accesses it via the docker network
+    volumes:
+      - graphite_data:/opt/graphite/storage
+      - ./storage-schemas.conf:/opt/graphite/conf/storage-schemas.conf
+    environment:
+      - GRAPHITE_DBNAME=${GRAPHITE_DBNAME}
+      - GRAPHITE_USER=${GRAPHITE_USER}
+      - GRAPHITE_PASSWORD=${GRAPHITE_PASSWORD}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: always
+    env_file:
+      - .env
+
+volumes:
+  postgres_data:
+  graphite_data:

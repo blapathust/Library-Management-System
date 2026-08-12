@@ -1,8 +1,5 @@
 import api from '../api/axios';
 
-// Default user ID to use when no authentication is present
-const DEFAULT_USER_ID = 'a7c84b31-e92f-4c7d-8456-98e2a521def0';
-
 // Cache for authentication status
 let authCache = {
   isAuthenticated: false,
@@ -20,42 +17,46 @@ export const getCookie = (name: string): string | null => {
   return cookie ? cookie.split('=')[1] : null;
 };
 
+// Helper function to clear a specific cookie
+const clearCookie = (name: string): void => {
+  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+};
+
 // User authentication service
 const authService = {
-  // Get the current user ID (will be replaced with JWT logic in the future)
+  // Get the current user ID
   getCurrentUserId: (): string | null => {
-  try {
-
-    const userId = getCookie('USERID');
-    
-    if (!userId) {
-      // Fall back to default user if no token exists
+    try {
+      const userId = getCookie('USERID');
+      return userId || null;
+    } catch (error) {
+      console.error('Error retrieving user ID from token:', error);
       return null;
     }
+  },
   
-    return userId
-  } catch (error) {
-    console.error('Error retrieving user ID from token:', error);
-    // Fall back to default user on error
-    return DEFAULT_USER_ID;
-  }
-},
-  
-  // Get the current username (will be replaced with JWT logic in the future)
+  // Get the current username
   getCurrentUsername: (): string => {
     try {
       const username = getCookie('USERNAME');
       if (username) {
-        // If username exists in cookie, return it
         return username;
       }
-
-      // Fall back to default if token format is invalid
       return 'Guest';
     } catch (error) {
       console.error('Error retrieving username from token:', error);
-      // Fall back to default user on error
       return 'Guest';
+    }
+  },
+
+  // Get the current user role
+  getCurrentRole: (): string | null => {
+    try {
+      const role = getCookie('ROLE');
+      return role || null;
+    } catch (error) {
+      console.error('Error retrieving role from token:', error);
+      return null;
     }
   },
   
@@ -64,15 +65,11 @@ const authService = {
     // Use cached value if still valid
     const now = Date.now();
     if (authCache.timestamp > 0 && now - authCache.timestamp < AUTH_CACHE_MAX_AGE) {
-      console.log('Using cached authentication status');
       return authCache.isAuthenticated;
     }
     
     try {
-      console.log('Sending authentication verification request...');
       const response = await api.post('/api/auth/verify', {});
-      
-      console.log('Authentication verification response:', response);
       
       // Update cache
       authCache = {
@@ -81,9 +78,7 @@ const authService = {
       };
       
       return authCache.isAuthenticated;
-    } catch (error) {
-      console.error('Authentication verification failed:', error);
-      
+    } catch {
       // Update cache for failed auth
       authCache = {
         isAuthenticated: false,
@@ -96,14 +91,11 @@ const authService = {
 
   login: async (username: string, password: string): Promise<boolean> => {
     try {
-      // Make API call to the login endpoint
       const response = await api.post('/api/auth/login', {
         username,
         password
       });
       
-      // If login successful (status 2xx), the server will set the cookie automatically
-      // via the Set-Cookie header, so we don't need to manually set it
       if (response.status >= 200 && response.status < 300) {
         sessionStorage.setItem('AUTHORIZATION', response.data);
         // Clear auth cache on successful login
@@ -111,32 +103,32 @@ const authService = {
         return true;
       }
       return false;
-    } catch (error) {
-      console.error('Login failed:', error);
+    } catch {
       return false;
     }
   },
   
   logout: async (): Promise<void> => {
-    // Clear the authentication token cookie
     try {
       await api.post('/api/auth/logout', {}, {
-        withCredentials: true // Ensure cookies are sent with the request
+        withCredentials: true
       });
-
-      document.cookie = '';
-      sessionStorage.removeItem('AUTHORIZATION');
-      // Clear auth cache on logout
-      authCache = { isAuthenticated: false, timestamp: Date.now() };
-    } catch (error) {
-      console.error('Logout failed:', error);
+    } catch {
+      // Logout API call failed, still clear local state
     }
 
+    // Properly clear cookies by setting expiry to past date
+    clearCookie('USERID');
+    clearCookie('USERNAME');
+    clearCookie('ROLE');
+    clearCookie('JSESSIONID');
+    sessionStorage.removeItem('AUTHORIZATION');
+    // Clear auth cache on logout
+    authCache = { isAuthenticated: false, timestamp: Date.now() };
   },
 
   register: async (name: string, username: string, password: string, email: string): Promise<{ success: boolean; message?: string }> => {
     try {
-      // Make API call to the register endpoint
       const response = await api.post('/api/auth/register', {
         name,
         username,
@@ -144,14 +136,13 @@ const authService = {
         email
       });
       
-      // If registration successful (status 2xx)
       if (response.status >= 200 && response.status < 300) {
         return { success: true };
       }
       return { success: false, message: 'Registration failed' };
-    } catch (error: any) {
-      console.error('Registration failed:', error);
-      const errorMessage = error.response?.data?.message || 'Registration failed';
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      const errorMessage = err.response?.data?.message || 'Registration failed';
       return { success: false, message: errorMessage };
     }
   },

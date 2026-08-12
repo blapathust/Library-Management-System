@@ -65,26 +65,17 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-//    @Bean
-//    public ErrorAttributes errorAttributes() {
-//        return new DefaultErrorAttributes() {
-//            @Override
-//            public Map<String, Object> getErrorAttributes(WebRequest webRequest,
-//                                                          org.springframework.boot.web.error.ErrorAttributeOptions options) {
-//                Map<String, Object> errorAttributes = super.getErrorAttributes(webRequest, options);
-//                // Remove the stack trace
-//                errorAttributes.remove("trace");
-//                // Customize the error message
-//                errorAttributes.put("message", "Access denied");
-//                return errorAttributes;
-//            }
-//        };
-//    }
+    @org.springframework.beans.factory.annotation.Value("${CORS_ORIGINS:http://localhost:5173}")
+    private String corsOrigins;
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173")); // Adjust with your frontend URL
+        
+        // Split by comma in case multiple origins are provided in env variable
+        List<String> origins = Arrays.asList(corsOrigins.split(","));
+        configuration.setAllowedOrigins(origins); 
+        
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);

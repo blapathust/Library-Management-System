@@ -81,9 +81,10 @@ export const SubscriptionService = {
         success: true, 
         message: response.data || 'Notification emails have been sent successfully!'
       };
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error sending subscription notifications:', error);
-      const errorMessage = error.response?.data?.message || 'Failed to send notification emails.';
+      const err = error as { response?: { data?: { message?: string } } };
+      const errorMessage = err.response?.data?.message || 'Failed to send notification emails.';
       return { success: false, message: errorMessage };
     }
   }
