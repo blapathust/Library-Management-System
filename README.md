@@ -1,58 +1,120 @@
-# Hệ thống quản lý thư viện
+# Library Management System
 
-## Giới thiệu
-WIP
-## Tính năng
-WIP
-## Cấu trúc
-WIP
-## Cài đặt
-### I. Cài đặt backend và database (dev):
-- Cài đặt [Docker](https://www.docker.com/) và khởi động.
-- (Optional) Kiểm tra trạng thái hoạt động của Docker daemon:
-  - Windows:
-    ```batch
-    tasklist | findstr docker
-    ```
-    ![image](https://github.com/user-attachments/assets/c18843ad-1ac8-4b9d-b6be-d78c27744273)
+A comprehensive, modern Library Management System built with a Spring Boot backend and a React (Vite) frontend.
 
-    Nếu hiện không đủ hoặc không có kết quả, hãy thử khởi động lại Docker Desktop.
-  - Unix: [Tham khảo](https://docs.docker.com/engine/daemon/troubleshoot)
-    ```bash
-    sudo systemctl status docker
-    ```
-    ![image](https://github.com/user-attachments/assets/0fbe4bc7-6c1d-432d-9051-80a1d5193a10)
-    Nếu không tìm thấy service, hoặc service không hiện tình trạng active, hãy thử khởi động lại Docker Destkop hoặc Docker Engine.
+## Features
 
-- PostgresSQL đã được cấu hình để chạy cùng với ứng dụng (Trong thực tế, có thể dùng PostgresSQL trên server khác.
-Tham khảo: [Tài liệu](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#appendix.application-properties.data))
-- Clone repository về máy và chuyển đến thư mục `backend`:
-```batch
-git clone https://github.com/Sukkaito/IT3180_20242_N3.git
-cd IT3180_20242_N3/backend
-```
-- Khởi chạy ứng dụng:
-```batch
-gradlew bootRun
-```
-### II. Cài đặt frontend:
-- Cài đặt [NodeJS](https://nodejs.org/en/download) v22.14.0+
-- (Optional) Kiểm tra tình trạng cài đặt NodeJS:
-```batch
-node --version
-```
-![image](https://github.com/user-attachments/assets/5dd61710-ce9e-4c25-b213-aa9191e96ac6)
+- **User Authentication**: Secure login, registration, and role-based access control (Admin, Staff, User) with HTTP-only cookies and basic auth fallback.
+- **Book Management**: Admins and staff can add, edit, and delete books, authors, categories, and publishers.
+- **Book Borrowing**: Users can request to borrow books, and staff can approve or reject these requests.
+- **Subscriptions**: Users can subscribe to their favorite books to get notified about availability or updates.
+- **Live Metrics & Analytics**: Administrators have access to real-time visit and login charts powered by Graphite metrics.
+- **Staff Profiles**: Dedicated admin profiles to track staff activity logs and update account information.
 
-Nếu hiện 1 dòng thông tin về số phiên bản NodeJS, cài đặt đã thành công.
-- Chuyển đến thư mục `frontend`, tiến hành cài đặt các dependency:
-```batch
-npm install
-```
-- Khởi chạy ứng dụng:
-```batch
-npm run dev
-```
-## Hướng dẫn sử dụng
-WIP
-## Tài liệu tham khảo
-WIP
+## Tech Stack
+
+### Frontend
+- React 19
+- Vite
+- TailwindCSS v4
+- React Router DOM
+- Recharts (for analytics)
+- Axios
+
+### Backend
+- Java 17 & Spring Boot 3.2+
+- Spring Security
+- PostgreSQL (Database)
+- Hibernate / Spring Data JPA
+- Micrometer / Graphite (for metrics)
+- Docker & Docker Compose
+
+---
+
+## Local Development Setup
+
+### 1. Backend Setup
+
+The easiest way to run the backend and its dependencies (PostgreSQL, Graphite) is using Docker Compose.
+
+1. Install [Docker Desktop](https://www.docker.com/).
+2. Navigate to the `backend` directory:
+   ```bash
+   cd backend
+   ```
+3. Copy the `.env.example` file (if present) to `.env` or create a `.env` file with the following variables:
+   ```env
+   POSTGRES_DB=library_db
+   POSTGRES_USER=postgres
+   POSTGRES_PASSWORD=your_secure_db_password
+
+   MAIL_USERNAME=your_email@gmail.com
+   MAIL_PASSWORD=your_app_password
+
+   CORS_ORIGINS=http://localhost:5173
+   DDL_AUTO=update
+   SQL_INIT_MODE=never
+   SHOW_SQL=false
+   COOKIE_SECURE=false
+   
+   GRAPHITE_DBNAME=graphite
+   GRAPHITE_USER=graphite
+   GRAPHITE_PASSWORD=your_secure_graphite_password
+   ```
+4. Start the backend services:
+   ```bash
+   docker compose up -d --build
+   ```
+   *The backend API will be available at `http://localhost:8081`.*
+
+### 2. Frontend Setup
+
+1. Install [Node.js](https://nodejs.org/) (v22+ recommended).
+2. Navigate to the `frontend` directory:
+   ```bash
+   cd frontend
+   ```
+3. Install dependencies:
+   ```bash
+   npm install
+   ```
+4. Ensure you have a `.env.local` file configured for local development:
+   ```env
+   VITE_API_URL=http://localhost:8081
+   ```
+5. Start the development server:
+   ```bash
+   npm run dev
+   ```
+   *The frontend will be available at `http://localhost:5173`.*
+
+---
+
+## Deployment
+
+### Backend
+The backend is fully containerized. To deploy to a VPS:
+1. Ensure `COOKIE_SECURE=true` is set in your production `.env`.
+2. Update `CORS_ORIGINS` to include your production frontend URL.
+3. Use a reverse proxy (like NGINX or Traefik) to serve the backend over HTTPS and restrict public access to internal ports (e.g., port `81` for Graphite).
+4. Run `docker compose up -d`.
+
+### Frontend
+The frontend can be built as a static site and deployed anywhere (Vercel, Netlify, Firebase Hosting, etc.).
+1. Ensure `.env` contains your production backend URL:
+   ```env
+   VITE_API_URL=https://api.yourdomain.com
+   ```
+2. Build the app:
+   ```bash
+   npm run build
+   ```
+3. Deploy the `dist` folder. If using Firebase, run:
+   ```bash
+   npm run deploy
+   ```
+
+---
+
+## License
+MIT License
