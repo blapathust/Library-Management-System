@@ -61,13 +61,20 @@ public class AuthenticationController {
                     .secure(true)
                     .path("/")
                     .maxAge(3600 * 24 * 30) // 1 month
-                    .httpOnly(false)
+                    .build();
+
+            ResponseCookie roleCookie = ResponseCookie.from("ROLE", userDetails.get().getRoleName())
+                    .httpOnly(false) // Allow client-side access for role
+                    .secure(true)
+                    .path("/")
+                    .maxAge(3600 * 24 * 30) // 1 month
                     .build();
 
             // Add cookie to response headers
             return ResponseEntity.ok()
                     .header(HttpHeaders.SET_COOKIE, userIdCookie.toString())
                     .header(HttpHeaders.SET_COOKIE, userNameCookie.toString())
+                    .header(HttpHeaders.SET_COOKIE, roleCookie.toString())
                     .body(basicAuthValue);
         } catch (AuthenticationException e) {
             return ResponseEntity.status(401).body("Authentication failed: " + e.getMessage());

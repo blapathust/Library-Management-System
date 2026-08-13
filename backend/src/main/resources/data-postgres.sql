@@ -7,7 +7,10 @@ INSERT INTO categories (id, name) VALUES
     (1, 'Fiction'),
     (2, 'Science'),
     (3, 'History'),
-    (4, 'Computer Science');
+    (4, 'Computer Science'),
+    (5, 'Fantasy'),
+    (6, 'Biography'),
+    (7, 'Self Help');
 
 SELECT setval('categories_id_seq', (SELECT MAX(id) FROM categories));
 
@@ -16,7 +19,10 @@ INSERT INTO authors (id, name) VALUES
     (1, 'George Orwell'),
     (2, 'J.K. Rowling'),
     (3, 'Robert C. Martin'),
-    (4, 'Stephen Hawking');
+    (4, 'Stephen Hawking'),
+    (5, 'J.R.R. Tolkien'),
+    (6, 'Walter Isaacson'),
+    (7, 'James Clear');
 
 SELECT setval('authors_id_seq', (SELECT MAX(id) FROM authors));
 
@@ -25,7 +31,10 @@ INSERT INTO publishers (id, name) VALUES
     (1, 'Secker & Warburg'),
     (2, 'Bloomsbury Publishing'),
     (3, 'Prentice Hall'),
-    (4, 'Bantam Books');
+    (4, 'Bantam Books'),
+    (5, 'Allen & Unwin'),
+    (6, 'Simon & Schuster'),
+    (7, 'Penguin Random House');
 
 SELECT setval('publishers_id_seq', (SELECT MAX(id) FROM publishers));
 
@@ -34,7 +43,11 @@ INSERT INTO books (book_id, title, description, publisher_id) VALUES
     (1, '1984', 'A dystopian novel set in a totalitarian regime', 1), -- Publisher ID 1
     (2, 'Harry Potter and the Philosopher''s Stone', 'The first book in the Harry Potter series', 2), -- Publisher ID 2
     (3, 'Clean Code', 'A handbook of agile software craftsmanship', 3), -- Publisher ID 3
-    (4, 'A Brief History of Time', 'A book about modern physics for non-scientists', 4); -- Publisher ID 4
+    (4, 'A Brief History of Time', 'A book about modern physics for non-scientists', 4), -- Publisher ID 4
+    (5, 'The Lord of the Rings', 'Epic high fantasy novel', 5),
+    (6, 'Steve Jobs', 'The exclusive biography of Steve Jobs', 6),
+    (7, 'Atomic Habits', 'An Easy & Proven Way to Build Good Habits & Break Bad Ones', 7),
+    (8, 'Animal Farm', 'A satirical allegorical novella', 1);
 
 SELECT setval('books_seq', (SELECT MAX(book_id) FROM books));
 
@@ -47,7 +60,13 @@ INSERT INTO book_copies (id, original_book_book_id, status) VALUES
     ('5', 1, 'UNAVAILABLE'),
     ('6', 2, 'AVAILABLE'),
     ('7', 3, 'AVAILABLE'),
-    ('8', 4, 'AVAILABLE');
+    ('8', 4, 'AVAILABLE'),
+    ('9', 5, 'AVAILABLE'),
+    ('10', 5, 'AVAILABLE'),
+    ('11', 6, 'AVAILABLE'),
+    ('12', 7, 'AVAILABLE'),
+    ('13', 8, 'AVAILABLE'),
+    ('14', 8, 'AVAILABLE');
 
 SELECT setval('book_copies_seq', (SELECT MAX(id) FROM book_copies));
 
@@ -56,14 +75,22 @@ INSERT INTO books_authors (book_id, author_id) VALUES
     (1, 1), -- 1984 by George Orwell
     (2, 2), -- Harry Potter by J.K. Rowling
     (3, 3), -- Clean Code by Robert C. Martin
-    (4, 4); -- A Brief History of Time by Stephen Hawking
+    (4, 4), -- A Brief History of Time by Stephen Hawking
+    (5, 5), -- The Lord of the Rings by J.R.R. Tolkien
+    (6, 6), -- Steve Jobs by Walter Isaacson
+    (7, 7), -- Atomic Habits by James Clear
+    (8, 1); -- Animal Farm by George Orwell
 
 -- Insert Books-Categories relationships
 INSERT INTO books_categories (book_id, category_id) VALUES
     (1, 1), -- 1984 is Fiction
     (2, 1), -- Harry Potter is Fiction
     (3, 4), -- Clean Code is Computer Science
-    (4, 2); -- A Brief History of Time is Science
+    (4, 2), -- A Brief History of Time is Science
+    (5, 5), -- The Lord of the Rings is Fantasy
+    (6, 6), -- Steve Jobs is Biography
+    (7, 7), -- Atomic Habits is Self Help
+    (8, 1); -- Animal Farm is Fiction
 
 -- Insert Roles
 INSERT INTO roles (id, name) VALUES

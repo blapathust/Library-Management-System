@@ -91,6 +91,12 @@ const authService = {
 
   login: async (username: string, password: string): Promise<boolean> => {
     try {
+      // Clear any old, potentially invalid tokens before attempting to log in again.
+      // If we don't do this, Axios will attach the old token to the login request,
+      // and Spring Security's BasicAuthenticationFilter will return 401 before
+      // the controller even receives the new credentials.
+      sessionStorage.removeItem('AUTHORIZATION');
+
       const response = await api.post('/api/auth/login', {
         username,
         password

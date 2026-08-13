@@ -48,7 +48,7 @@ export default function LoginPage() {
       
       if (success) {
         // After successful login, update the auth context
-        await checkAuthStatus();
+        await checkAuthStatus(true);
         
         // Then navigate to the return URL
         console.log('Login successful, redirecting to:', from);
@@ -94,10 +94,9 @@ export default function LoginPage() {
           </button>
         </div>
 
-        {/* Tiêu đề của trang, thay đổi text và màu theo role */}
         <h2 className={`text-3xl font-bold text-center mb-6 ${isAdmin ? "text-purple-700" : "text-blue-700"
           }`}>
-          {isAdmin ? "Admin Portal Login" : "Login to Library"}
+          {isAdmin ? "Admin Login" : "Login to Library Management System"}
         </h2>
 
         {/* Display error message if any */}

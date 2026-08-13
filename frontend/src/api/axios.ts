@@ -11,7 +11,7 @@ api.interceptors.request.use(
     config.withCredentials = true;
     const authToken = sessionStorage.getItem('AUTHORIZATION');
     if (authToken) {
-      config.headers.Authorization = `Basic ${authToken}`;
+      config.headers.set('Authorization', `Basic ${authToken}`);
     }
     return config;
   },

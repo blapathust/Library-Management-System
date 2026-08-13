@@ -5,7 +5,7 @@ function App() {
   return (
     <>
       <div className="min-h-screen bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 flex flex-col items-center justify-center p-6">
-        <h1 className="text-4xl font-bold mb-10 text-center text-blue-800 drop-shadow-lg">Welcome to the Library</h1>
+        <h1 className="text-4xl font-bold mb-10 text-center text-blue-800 drop-shadow-lg">Welcome to the Library Management System</h1>
         <div className="flex space-x-6">
           <Link to="/" className="px-6 py-3 bg-blue-600 text-white rounded-2xl shadow-lg hover:bg-blue-700 transition duration-300">
             Home

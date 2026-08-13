@@ -67,4 +67,34 @@ public class MetricController {
         long requestCount = metricService.getRequestCount();
         return ResponseEntity.ok(requestCount);
     }
+
+    @GetMapping(value = "/visits", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> getVisits(
+            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "-10mins") String from,
+            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "now") String until) {
+        try {
+            org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
+            
+            // Determine graphite host based on environment
+            String graphiteHost = System.getenv("STATSD_HOST");
+            if (graphiteHost == null || graphiteHost.isEmpty()) {
+                graphiteHost = "localhost";
+            }
+            
+            // Port is 80 if inside docker (graphite), or 81 if on host (localhost mapped port)
+            int graphitePort = "graphite".equals(graphiteHost) ? 80 : 81;
+            
+            // Use stats_counts which gives exact count per flush interval, or stats.counters...
+            String target = "stats_counts.user.page.view";
+            
+            String graphiteUrl = String.format("http://%s:%d/render?target=%s&format=json&from=%s&until=%s", 
+                graphiteHost, graphitePort, target, from, until);
+                
+            ResponseEntity<String> response = restTemplate.getForEntity(graphiteUrl, String.class);
+            return ResponseEntity.ok().body(response.getBody());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error fetching metrics: " + e.getMessage());
+        }
+    }
 }

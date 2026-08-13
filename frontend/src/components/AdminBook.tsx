@@ -4,15 +4,9 @@ import { Book as BookType } from "../data/books";
 import { Author as AuthorType } from "../data/authors";
 import { Category as CategoryType } from "../data/categories";
 import { Publisher as PublisherType } from "../data/publishers";
-import { STORAGE_KEY_PREFIX } from "../services/baseService";
-import defaultAuthors from "../data/authors";
-import defaultCategories from "../data/categories";
-import defaultPublishers from "../data/publishers";
-
-// LocalStorage keys
-const AUTHORS_STORAGE_KEY = `${STORAGE_KEY_PREFIX}authors`;
-const CATEGORIES_STORAGE_KEY = `${STORAGE_KEY_PREFIX}categories`;
-const PUBLISHERS_STORAGE_KEY = `${STORAGE_KEY_PREFIX}publishers`;
+import { AuthorService } from "../services/authorService";
+import { categoryService } from "../services/categoryService";
+import { publisherService } from "../services/publisherService";
 
 // Props nhận từ component cha
 interface AdminBookProps {
@@ -28,34 +22,23 @@ export default function AdminBook({ book, onView, onEdit, onDelete }: AdminBookP
     const [categories, setCategories] = useState<CategoryType[]>([]);
     const [publishers, setPublishers] = useState<PublisherType[]>([]);
     
-    // Load data from localStorage on component mount
+    // Load data from API on component mount
     useEffect(() => {
-        // Load authors
-        const storedAuthors = localStorage.getItem(AUTHORS_STORAGE_KEY);
-        if (storedAuthors) {
-            setAuthors(JSON.parse(storedAuthors));
-        } else {
-            // Fallback to default data if localStorage is empty
-            setAuthors(defaultAuthors);
-        }
-        
-        // Load categories
-        const storedCategories = localStorage.getItem(CATEGORIES_STORAGE_KEY);
-        if (storedCategories) {
-            setCategories(JSON.parse(storedCategories));
-        } else {
-            // Fallback to default data if localStorage is empty
-            setCategories(defaultCategories);
-        }
-        
-        // Load publishers
-        const storedPublishers = localStorage.getItem(PUBLISHERS_STORAGE_KEY);
-        if (storedPublishers) {
-            setPublishers(JSON.parse(storedPublishers));
-        } else {
-            // Fallback to default data if localStorage is empty
-            setPublishers(defaultPublishers);
-        }
+        const loadData = async () => {
+            try {
+                const [authorsData, categoriesData, publishersData] = await Promise.all([
+                    AuthorService.getAll(),
+                    categoryService.getAll(),
+                    publisherService.getAll()
+                ]);
+                setAuthors(authorsData);
+                setCategories(categoriesData);
+                setPublishers(publishersData);
+            } catch (error) {
+                console.error("Failed to load metadata for AdminBook", error);
+            }
+        };
+        loadData();
     }, []);
     
     // Tìm tên tác giả từ danh sách id

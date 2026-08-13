@@ -1,13 +1,11 @@
-FROM eclipse-temurin:17-jdk-alpine AS build
+FROM gradle:8.5-jdk17-alpine AS build
 WORKDIR /app
-COPY gradlew .
-COPY gradle gradle
 COPY build.gradle .
 COPY settings.gradle .
 COPY src src
 
-# Build the application
-RUN ./gradlew build -x test
+# Build the application using system gradle
+RUN gradle build -x test
 
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
