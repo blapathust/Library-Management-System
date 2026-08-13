@@ -2,6 +2,11 @@
 
 A comprehensive, modern Library Management System built with a Spring Boot backend and a React (Vite) frontend.
 
+## Demo
+
+- **User Demo**: Available at [https://library.c4tu5.com](https://library.c4tu5.com)
+- **Admin Demo**: For admin or staff access to the live demo, please contact the owner of this fork.
+
 ## Features
 
 - **User Authentication**: Secure login, registration, and role-based access control (Admin, Staff, User) with HTTP-only cookies and basic auth fallback.
