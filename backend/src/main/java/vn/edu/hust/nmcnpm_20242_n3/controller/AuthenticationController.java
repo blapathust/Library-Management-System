@@ -140,7 +140,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/verify")
-    public ResponseEntity<?> verifyUser(@RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<?> verifyUser(@RequestHeader(value = "Authorization", required = false) String authHeader) {
         try {
             if (authHeader == null || !authHeader.startsWith("Basic ")) {
                 return ResponseEntity.status(401).body("Invalid authorization header");
