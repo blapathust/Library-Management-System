@@ -123,6 +123,3 @@ The frontend can be built as a static site and deployed anywhere (Vercel, Netlif
    ```
 
 ---
-
-## License
-MIT License
