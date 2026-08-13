@@ -7,6 +7,8 @@ A comprehensive, modern Library Management System built with a Spring Boot backe
 - **User Demo**: Available at [https://library.c4tu5.com](https://library.c4tu5.com)
   - **Username**: `test_user`
   - **Password**: `password`
+ 
+- **Admin/Staff Demo**: Contact fork owner for access
 
 ## Features
 
