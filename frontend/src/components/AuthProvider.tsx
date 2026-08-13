@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     
     setIsLoading(true);
     try {
-      const authenticated = await authService.isAuthenticated();
+      const authenticated = await authService.isAuthenticated(force);
       setIsAuthenticated(authenticated);
       
       if (authenticated) {
