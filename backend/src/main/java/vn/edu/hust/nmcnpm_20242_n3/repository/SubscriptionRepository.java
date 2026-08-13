@@ -11,8 +11,8 @@ import java.util.Optional;
 @Repository
 public interface SubscriptionRepository extends CrudRepository<Subscription, Integer> {
 
-    Optional<Subscription> findByBookCopyIdAndUserId(Integer bookCopyId, String userId);
-    List<Subscription> findAllByBookCopyIdAndActive(Integer bookCopyId, boolean active);
+    Optional<Subscription> findByBook_BookIdAndUserId(Integer bookId, String userId);
+    List<Subscription> findAllByBook_BookIdAndActive(Integer bookId, boolean active);
     List<Subscription> findAllByActive(boolean b);
     List<Subscription> findAllByUserId(String userId);
     Optional<Subscription> findById(Integer id);

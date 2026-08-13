@@ -1,7 +1,6 @@
 import api from '../api/axios';
 import { BaseService } from './baseService';
 import subscriptions, { Subscription } from '../data/subscriptions';
-import { BookCopyService } from './bookCopyService';
 
 // Create subscription service using the base service with fallback data
 const subscriptionBaseService = new BaseService<Subscription>('subscriptions', subscriptions);
@@ -32,31 +31,11 @@ export const SubscriptionService = {
     }
   },
 
-  // Subscribe to a book copy
-  subscribeToBookCopy: async (userId: string, bookCopyId: number): Promise<string> => {
-    try {
-      const response = await api.post(`/api/subscriptions/subscribe/${userId}/${bookCopyId}`);
-      return response.data;
-    } catch (error) {
-      console.error(`Error subscribing to book copy ${bookCopyId}:`, error);
-      throw error;
-    }
-  },
-
-  // Subscribe to a book (all copies)
+  // Subscribe to a book
   subscribeToBook: async (userId: string, bookId: number): Promise<string> => {
     try {
-        const bookCopies = await BookCopyService.getByBookId(bookId);
-        const results = await Promise.allSettled(
-          bookCopies.map(copy => SubscriptionService.subscribeToBookCopy(userId, copy.id))
-        );
-        const successfulSubscriptions = results
-          .filter(result => result.status === 'fulfilled')
-          .map(result => (result as PromiseFulfilledResult<string>).value);
-        if (successfulSubscriptions.length === 0) {
-          throw new Error(`No subscriptions were successful for book ${bookId}`);
-        }
-        return `Subscribed to book ${bookId} with ${successfulSubscriptions.length} copies.`;
+      const response = await api.post(`/api/subscriptions/subscribe/${userId}/${bookId}`);
+      return response.data;
     } catch (error) {
       console.error(`Error subscribing to book ${bookId}:`, error);
       throw error;

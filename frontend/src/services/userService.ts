@@ -17,7 +17,7 @@ const userService = {
     // Get all users (admin only endpoint)
     getAllUsers: async (): Promise<User[]> => {
         try {
-            const response = await api.get('/api/staff/users'); // Not working
+            const response = await api.get('/api/users');
             return response.data;
         } catch (error) {
             console.error('Error fetching all users:', error);
@@ -44,8 +44,11 @@ const userService = {
     // Get regular users only
     getAllRegularUsers: async (): Promise<User[]> => {
         try {
+            // Note: Currently /api/users returns all users, so we need to filter if there's no dedicated endpoint.
+            // If the backend has an endpoint for just regular users, change it here.
             const response = await api.get('/api/users');
-            return response.data;
+            const allUsers: User[] = response.data;
+            return allUsers.filter(user => user.roleName === USER_ROLES.USER);
         } catch (error) {
             console.error('Error fetching regular users:', error);
             // Get all users and filter regular users
@@ -145,7 +148,7 @@ const userService = {
     // Search users by name, username, or email
     searchUsers: async (searchTerm: string): Promise<User[]> => {
         try {
-            const response = await api.get(`/api/staff/users/search?term=${searchTerm}`);
+            const response = await api.get(`/api/users/search?username=${searchTerm}`);
             return response.data;
         } catch (error) {
             console.error(`Error searching users with term "${searchTerm}":`, error);

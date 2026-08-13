@@ -27,7 +27,8 @@ public class MetricsConfig {
 
             @Override
             public String host() {
-                return "host.docker.internal"; // Use host.docker.internal for Docker compatibility
+                String host = System.getenv("STATSD_HOST");
+                return (host != null && !host.isEmpty()) ? host : "localhost";
             }
 
             @Override

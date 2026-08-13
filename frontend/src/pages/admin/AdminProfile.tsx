@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import AdminNavbar from '../../components/AdminNavbar';
 import { User } from '../../data/users';
 import staffService from '../../services/staffService';
+import userService from '../../services/userService';
 
 export default function AdminProfile() {
     // State for admin profile data
@@ -63,7 +64,9 @@ export default function AdminProfile() {
             }
             
             // Update profile
-            const updatedProfile = await staffService.updateProfile({
+            const updatedProfile = await userService.updateUser(profile.id, {
+                userName: profile.userName,
+                roleName: profile.roleName,
                 name: editedName,
                 email: editedEmail
             });

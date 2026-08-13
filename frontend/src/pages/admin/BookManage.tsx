@@ -66,20 +66,20 @@ export default function BookManage() {
     const filteredBooks = books.filter((book) => {
         const lowerSearch = search.toLowerCase();
 
-        const titleMatch = book.title.toLowerCase().includes(lowerSearch);
+        const titleMatch = book.title?.toLowerCase().includes(lowerSearch) || false;
 
         // Tìm tên tác giả trong mảng authorIds của sách
-        const authorMatch = book.authorIds.some(id =>
-            authors.find(a => a.id === id)?.name.toLowerCase().includes(lowerSearch)
-        );
+        const authorMatch = book.authorIds?.some(id =>
+            authors.find(a => a.id === id)?.name?.toLowerCase().includes(lowerSearch)
+        ) || false;
 
         // Tìm tên danh mục trong mảng categoryIds
-        const categoryMatch = book.categoryIds.some(id =>
-            categories.find(c => c.id === id)?.name.toLowerCase().includes(lowerSearch)
-        );
+        const categoryMatch = book.categoryIds?.some(id =>
+            categories.find(c => c.id === id)?.name?.toLowerCase().includes(lowerSearch)
+        ) || false;
 
         // Tìm tên nhà xuất bản
-        const publisherMatch = publishers.find(p => p.id === book.publisherId)?.name.toLowerCase().includes(lowerSearch);
+        const publisherMatch = publishers.find(p => p.id === book.publisherId)?.name?.toLowerCase().includes(lowerSearch) || false;
 
         return titleMatch || authorMatch || categoryMatch || publisherMatch;
     });

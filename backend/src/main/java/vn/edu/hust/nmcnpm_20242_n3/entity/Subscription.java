@@ -12,8 +12,8 @@ public class Subscription {
     private Integer id;
 
     @ManyToOne
-    @JoinColumn(name = "book_copy_id", nullable = false)
-    private BookCopy bookCopy;
+    @JoinColumn(name = "book_id", nullable = false)
+    private Book book;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
@@ -39,12 +39,12 @@ public class Subscription {
         this.id = id;
     }
 
-    public BookCopy getBookCopy() {
-        return bookCopy;
+    public Book getBook() {
+        return book;
     }
 
-    public void setBookCopy(BookCopy bookCopy) {
-        this.bookCopy = bookCopy;
+    public void setBook(Book book) {
+        this.book = book;
     }
 
     public User getUser() {

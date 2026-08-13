@@ -13,6 +13,7 @@ services:
       - SQL_INIT_MODE=${SQL_INIT_MODE}
       - SHOW_SQL=${SHOW_SQL}
       - STATSD_HOST=graphite
+      - COOKIE_SECURE=${COOKIE_SECURE}
     depends_on:
       postgres:
         condition: service_healthy

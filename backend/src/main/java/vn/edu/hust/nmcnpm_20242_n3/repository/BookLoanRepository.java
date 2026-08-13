@@ -28,6 +28,11 @@ public interface BookLoanRepository extends CrudRepository<BookLoan, String> {
             @Param("bookCopyId") Integer bookCopyId,
             @Param("status") BookLoanStatusEnum status);
 
+    @Query("SELECT b FROM BookLoan b WHERE b.user.id=:userId AND b.status IN :statuses AND b.bookCopy.id=:bookCopyId")
+    Optional<BookLoan> findByBookCopyIdAndUserIdAndStatuses(@Param("userId") String userId,
+            @Param("bookCopyId") Integer bookCopyId,
+            @Param("statuses") List<BookLoanStatusEnum> statuses);
+
 
     @Query("SELECT bl.bookCopy.originalBook FROM BookLoan bl WHERE bl.user.id = ?1 AND bl.status = 'BORROWED'")
     List<Book> findBorrowedBooksByUserId(String userId);

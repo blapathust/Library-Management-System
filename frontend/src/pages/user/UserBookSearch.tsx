@@ -94,8 +94,8 @@ export default function UserBookSearch() {
         if (searchTerm.trim()) {
             const term = searchTerm.toLowerCase();
             results = results.filter(book => 
-                book.title.toLowerCase().includes(term) || 
-                book.description.toLowerCase().includes(term)
+                book.title?.toLowerCase().includes(term) || 
+                book.description?.toLowerCase().includes(term)
             );
         }
         
