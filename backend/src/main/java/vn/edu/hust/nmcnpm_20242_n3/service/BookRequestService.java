@@ -77,10 +77,10 @@ public class BookRequestService {
             if (bookCopy == null) {
                 throw new IllegalStateException("BookCopy not found for BORROWING request with ID: " + requestId);
             }
-            if (!bookCopy.getStatus().equals(BookCopyStatusEnum.AVAILABLE)) {
-                throw new IllegalStateException("BookCopy with ID " + bookCopy.getId() + " is already unavailable");
-            }
             if (approve) {
+                if (!bookCopy.getStatus().equals(BookCopyStatusEnum.AVAILABLE)) {
+                    throw new IllegalStateException("BookCopy with ID " + bookCopy.getId() + " is already unavailable");
+                }
                 BookLoan newBookLoan = new BookLoan();
                 newBookLoan.setBookCopy(bookCopy);
                 newBookLoan.setUser(request.getUser());
@@ -91,7 +91,7 @@ public class BookRequestService {
                 request.setStatus(BookRequestStatusEnum.ACCEPTED);
                 bookCopy.setStatus(BookCopyStatusEnum.UNAVAILABLE);
                 bookCopyRepository.save(bookCopy);
-                subscriptionService.cancelSubscriptionAfterBorrowing(bookCopy.getId(), request.getUser().getId());
+                subscriptionService.cancelSubscriptionAfterBorrowing(bookCopy.getOriginalBook().getBookId(), request.getUser().getId());
             } else {
                 request.setStatus(BookRequestStatusEnum.DENIED);
             }
@@ -99,10 +99,10 @@ public class BookRequestService {
             if (bookLoan == null) {
                 throw new IllegalStateException("Associated BookLoan not found for RETURNING request with ID: " + requestId);
             }
-            if (!BookLoanStatusEnum.BORROWED.equals(bookLoan.getStatus())) {
-                throw new IllegalStateException("BookLoan with ID " + bookLoan.getId() + " is not in BORROWED state");
-            }
             if (approve) {
+                if (!BookLoanStatusEnum.BORROWED.equals(bookLoan.getStatus()) && !BookLoanStatusEnum.OVERDUE.equals(bookLoan.getStatus())) {
+                    throw new IllegalStateException("BookLoan with ID " + bookLoan.getId() + " is not in BORROWED or OVERDUE state");
+                }
                 Date currentDate = new Date();
                 bookLoan.setStatus(BookLoanStatusEnum.RETURNED);
                 if (bookLoan.getActualReturnDate() == null) {
@@ -166,7 +166,7 @@ public class BookRequestService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
         BookLoan bookLoan = bookLoanService
-                .findBookLoanByBookCopyIdAndUserIdAndStatus(bookCopyId, userId, BookLoanStatusEnum.BORROWED)
+                .findActiveBookLoanByBookCopyIdAndUserId(bookCopyId, userId)
                 .orElseThrow(() -> new IllegalArgumentException("Book copy is not borrowed by this user"));
         if (!bookLoan.getUser().getId().equals(userId)) {
             throw new IllegalArgumentException("User did not borrow this book copy!");

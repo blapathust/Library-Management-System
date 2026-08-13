@@ -35,8 +35,10 @@ public class DataSeeder {
             logger.atInfo().log("Altering initial data...");
 
             for (User user : userRepository.findAll()) {
-                user.setPassword(encoder.encode(user.getPassword()));
-                userRepository.save(user);
+                if (!user.getPassword().startsWith("$2a$") && !user.getPassword().startsWith("$2b$")) {
+                    user.setPassword(encoder.encode(user.getPassword()));
+                    userRepository.save(user);
+                }
             }
             logger.atInfo().log("Default admin account created with username 'admin' and password 'password'.");
 

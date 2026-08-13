@@ -5,13 +5,10 @@ import { Author } from '../../data/authors';
 import { Category } from '../../data/categories';
 import { Publisher } from '../../data/publishers';
 import bookService from '../../services/bookService';
-import { STORAGE_KEY_PREFIX } from '../../services/baseService';
+import { AuthorService } from '../../services/authorService';
+import { categoryService } from '../../services/categoryService';
+import { publisherService } from '../../services/publisherService';
 import BookBorrowModal from '../../components/BookBorrowModal';
-
-// Local storage keys
-const AUTHORS_STORAGE_KEY = `${STORAGE_KEY_PREFIX}authors`;
-const CATEGORIES_STORAGE_KEY = `${STORAGE_KEY_PREFIX}categories`;
-const PUBLISHERS_STORAGE_KEY = `${STORAGE_KEY_PREFIX}publishers`;
 
 export default function UserBookSearch() {
     // State for search data
@@ -41,29 +38,18 @@ export default function UserBookSearch() {
         const loadData = async () => {
             try {
                 setLoading(true);
+                const [booksData, authorsData, categoriesData, publishersData] = await Promise.all([
+                    bookService.getAll(),
+                    AuthorService.getAll(),
+                    categoryService.getAll(),
+                    publisherService.getAll()
+                ]);
                 
-                // Load all books
-                const booksData = await bookService.getAll();
                 setBooks(booksData);
                 setFilteredBooks(booksData);
-                
-                // Load authors from localStorage
-                const storedAuthors = localStorage.getItem(AUTHORS_STORAGE_KEY);
-                if (storedAuthors) {
-                    setAuthors(JSON.parse(storedAuthors));
-                }
-                
-                // Load categories from localStorage
-                const storedCategories = localStorage.getItem(CATEGORIES_STORAGE_KEY);
-                if (storedCategories) {
-                    setCategories(JSON.parse(storedCategories));
-                }
-                
-                // Load publishers from localStorage
-                const storedPublishers = localStorage.getItem(PUBLISHERS_STORAGE_KEY);
-                if (storedPublishers) {
-                    setPublishers(JSON.parse(storedPublishers));
-                }
+                setAuthors(authorsData);
+                setCategories(categoriesData);
+                setPublishers(publishersData);
                 
                 setError(null);
             } catch (err) {
@@ -108,8 +94,8 @@ export default function UserBookSearch() {
         if (searchTerm.trim()) {
             const term = searchTerm.toLowerCase();
             results = results.filter(book => 
-                book.title.toLowerCase().includes(term) || 
-                book.description.toLowerCase().includes(term)
+                book.title?.toLowerCase().includes(term) || 
+                book.description?.toLowerCase().includes(term)
             );
         }
         

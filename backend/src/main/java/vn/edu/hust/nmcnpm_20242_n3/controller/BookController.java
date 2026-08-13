@@ -127,8 +127,8 @@ public class BookController {
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_STAFF')")
     public ResponseEntity<?> updateBookById(@PathVariable int id, @RequestBody BookDTO bookDTO){
         try{
-            Book updatedBook= bookService.updateById(id, bookDTO);
-            return new ResponseEntity<>(updatedBook, HttpStatus.OK);
+            Book updatedBook = bookService.updateById(id, bookDTO);
+            return new ResponseEntity<>(bookService.convertToDTO(updatedBook), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
         }

@@ -73,7 +73,11 @@ export default function BookBorrowModal({
       setLoading(true);
       setError(null);
       const userId = authService.getCurrentUserId();
-      const response = await BookRequestService.createBorrowRequest(userId, selectedCopyId);
+      if (!userId) {
+        setError("You must be logged in to borrow a book.");
+        return;
+      }
+      await BookRequestService.createBorrowRequest(userId, selectedCopyId);
       setSuccess("Borrow request submitted successfully!");
       
       // After a short delay, close the modal and refresh the parent component
@@ -81,28 +85,23 @@ export default function BookBorrowModal({
         onSuccess();
         onClose();
       }, 1500);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error creating borrow request:", err);
       
       // Extract error message from response if available
       let errorMessage = "Failed to create borrow request.";
       
-      if (err.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
-        if (err.response.data && err.response.data.message) {
-          errorMessage = err.response.data.message;
-        } else if (err.response.data) {
-          // If data exists but no message property
-          errorMessage = typeof err.response.data === 'string' 
-            ? err.response.data 
-            : JSON.stringify(err.response.data);
+      const axiosErr = err as { response?: { data?: { message?: string } | string; status?: number }; message?: string };
+      if (axiosErr.response) {
+        if (axiosErr.response.data && typeof axiosErr.response.data === 'object' && 'message' in axiosErr.response.data) {
+          errorMessage = (axiosErr.response.data as { message: string }).message;
+        } else if (typeof axiosErr.response.data === 'string') {
+          errorMessage = axiosErr.response.data;
         } else {
-          errorMessage = `Server error: ${err.response.status}`;
+          errorMessage = `Server error: ${axiosErr.response.status}`;
         }
-      } else if (err.message) {
-        // The request was made but no response was received
-        errorMessage = err.message;
+      } else if (axiosErr.message) {
+        errorMessage = axiosErr.message;
       }
       
       setError(errorMessage);
@@ -122,6 +121,10 @@ export default function BookBorrowModal({
       setLoading(true);
       setError(null);
       const userId = authService.getCurrentUserId();
+      if (!userId) {
+        setError("You must be logged in to borrow a book.");
+        return;
+      }
       await BookRequestService.createRandomBorrowRequest(userId, book.id);
       setSuccess("Random copy borrow request submitted successfully!");
       
@@ -130,28 +133,23 @@ export default function BookBorrowModal({
         onSuccess();
         onClose();
       }, 1500);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error creating random borrow request:", err);
       
       // Extract error message from response if available
       let errorMessage = "Failed to create random borrow request.";
       
-      if (err.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
-        if (err.response.data && err.response.data.message) {
-          errorMessage = err.response.data.message;
-        } else if (err.response.data) {
-          // If data exists but no message property
-          errorMessage = typeof err.response.data === 'string' 
-            ? err.response.data 
-            : JSON.stringify(err.response.data);
+      const axiosErr = err as { response?: { data?: { message?: string } | string; status?: number }; message?: string };
+      if (axiosErr.response) {
+        if (axiosErr.response.data && typeof axiosErr.response.data === 'object' && 'message' in axiosErr.response.data) {
+          errorMessage = (axiosErr.response.data as { message: string }).message;
+        } else if (typeof axiosErr.response.data === 'string') {
+          errorMessage = axiosErr.response.data;
         } else {
-          errorMessage = `Server error: ${err.response.status}`;
+          errorMessage = `Server error: ${axiosErr.response.status}`;
         }
-      } else if (err.message) {
-        // The request was made but no response was received
-        errorMessage = err.message;
+      } else if (axiosErr.message) {
+        errorMessage = axiosErr.message;
       }
       
       setError(errorMessage);
@@ -172,8 +170,10 @@ export default function BookBorrowModal({
       setSubscribing(true);
       setError(null);
       const userId = authService.getCurrentUserId();
-      
-      // Subscribe to the book itself, which means subscribing to all its copies
+      if (!userId) {
+        setError("You must be logged in to subscribe.");
+        return;
+      }
       await SubscriptionService.subscribeToBook(userId, book.id);
       setSuccess("You have subscribed to this book. You will be notified when any copy becomes available.");
       
@@ -182,28 +182,23 @@ export default function BookBorrowModal({
         onSuccess();
         onClose();
       }, 1500);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error subscribing to book:", err);
       
       // Extract error message from response if available
       let errorMessage = "Failed to subscribe to book.";
       
-      if (err.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
-        if (err.response.data && err.response.data.message) {
-          errorMessage = err.response.data.message;
-        } else if (err.response.data) {
-          // If data exists but no message property
-          errorMessage = typeof err.response.data === 'string' 
-            ? err.response.data 
-            : JSON.stringify(err.response.data);
+      const axiosErr = err as { response?: { data?: { message?: string } | string; status?: number }; message?: string };
+      if (axiosErr.response) {
+        if (axiosErr.response.data && typeof axiosErr.response.data === 'object' && 'message' in axiosErr.response.data) {
+          errorMessage = (axiosErr.response.data as { message: string }).message;
+        } else if (typeof axiosErr.response.data === 'string') {
+          errorMessage = axiosErr.response.data;
         } else {
-          errorMessage = `Server error: ${err.response.status}`;
+          errorMessage = `Server error: ${axiosErr.response.status}`;
         }
-      } else if (err.message) {
-        // The request was made but no response was received
-        errorMessage = err.message;
+      } else if (axiosErr.message) {
+        errorMessage = axiosErr.message;
       }
       
       setError(errorMessage);

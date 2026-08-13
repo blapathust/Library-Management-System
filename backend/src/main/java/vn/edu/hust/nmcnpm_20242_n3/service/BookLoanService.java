@@ -89,6 +89,10 @@ public class BookLoanService {
         return bookLoanRepository.findByBookCopyIdAndUserIdAndStatus(userId, bookCopyId, status);
     }
 
+    public Optional<BookLoan> findActiveBookLoanByBookCopyIdAndUserId(int bookCopyId, String userId) {
+        return bookLoanRepository.findByBookCopyIdAndUserIdAndStatuses(userId, bookCopyId, List.of(BookLoanStatusEnum.BORROWED, BookLoanStatusEnum.OVERDUE));
+    }
+
 
     public void save(BookLoan bookLoan) {
         bookLoanRepository.save(bookLoan);

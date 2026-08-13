@@ -2,7 +2,9 @@ package vn.edu.hust.nmcnpm_20242_n3.controller;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +14,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import io.micrometer.core.instrument.MeterRegistry;
 import vn.edu.hust.nmcnpm_20242_n3.dto.UserDTO;
 import vn.edu.hust.nmcnpm_20242_n3.service.AuthenticationService;
 import vn.edu.hust.nmcnpm_20242_n3.service.UserService;
@@ -22,13 +25,27 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
-@AllArgsConstructor
 @CrossOrigin(origins = "http://localhost:5173")
 public class AuthenticationController {
 
     private final AuthenticationManager authManager;
     private final UserService userService;
     private final AuthenticationService authenticationService;
+    private final MeterRegistry meterRegistry;
+    private final boolean cookieSecure;
+
+    public AuthenticationController(
+            AuthenticationManager authManager,
+            UserService userService,
+            AuthenticationService authenticationService,
+            MeterRegistry meterRegistry,
+            @Value("${COOKIE_SECURE:false}") boolean cookieSecure) {
+        this.authManager = authManager;
+        this.userService = userService;
+        this.authenticationService = authenticationService;
+        this.meterRegistry = meterRegistry;
+        this.cookieSecure = cookieSecure;
+    }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
@@ -49,25 +66,37 @@ public class AuthenticationController {
                     (request.getUsername() + ":" + request.getPassword()).getBytes(StandardCharsets.UTF_8));
 
             ResponseCookie userIdCookie = ResponseCookie.from("USERID", userId)
-                    .httpOnly(true)
-                    .secure(true)
+                    .httpOnly(false) // Allow client-side access for user ID
+                    .secure(cookieSecure)
+                    .sameSite("Lax")
                     .path("/")
                     .maxAge(3600 * 24 * 30) // 1 month
-                    .httpOnly(false) // Allow client-side access for user ID
                     .build();
 
             ResponseCookie userNameCookie = ResponseCookie.from("USERNAME", request.getUsername())
                     .httpOnly(false) // Allow client-side access for username
-                    .secure(true)
+                    .secure(cookieSecure)
+                    .sameSite("Lax")
                     .path("/")
                     .maxAge(3600 * 24 * 30) // 1 month
-                    .httpOnly(false)
                     .build();
+
+            ResponseCookie roleCookie = ResponseCookie.from("ROLE", userDetails.get().getRoleName())
+                    .httpOnly(false) // Allow client-side access for role
+                    .secure(cookieSecure)
+                    .sameSite("Lax")
+                    .path("/")
+                    .maxAge(3600 * 24 * 30) // 1 month
+                    .build();
+
+            // Increment login metric
+            meterRegistry.counter("user.login").increment();
 
             // Add cookie to response headers
             return ResponseEntity.ok()
                     .header(HttpHeaders.SET_COOKIE, userIdCookie.toString())
                     .header(HttpHeaders.SET_COOKIE, userNameCookie.toString())
+                    .header(HttpHeaders.SET_COOKIE, roleCookie.toString())
                     .body(basicAuthValue);
         } catch (AuthenticationException e) {
             return ResponseEntity.status(401).body("Authentication failed: " + e.getMessage());
@@ -134,6 +163,7 @@ public class AuthenticationController {
 
     @Getter
     @Setter
+    @NoArgsConstructor
     @AllArgsConstructor
     public static class LoginRequest {
         private String username;
@@ -142,6 +172,7 @@ public class AuthenticationController {
 
     @Getter
     @Setter
+    @NoArgsConstructor
     @AllArgsConstructor
     public static class RegisterRequest {
         private String name;

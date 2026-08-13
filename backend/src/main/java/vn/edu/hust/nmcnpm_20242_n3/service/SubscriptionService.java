@@ -5,40 +5,59 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import vn.edu.hust.nmcnpm_20242_n3.entity.Book;
 import vn.edu.hust.nmcnpm_20242_n3.entity.BookCopy;
 import vn.edu.hust.nmcnpm_20242_n3.entity.Subscription;
+import vn.edu.hust.nmcnpm_20242_n3.repository.BookRepository;
 import vn.edu.hust.nmcnpm_20242_n3.repository.BookCopyRepository;
 import vn.edu.hust.nmcnpm_20242_n3.repository.SubscriptionRepository;
 import vn.edu.hust.nmcnpm_20242_n3.repository.UserRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class SubscriptionService {
 
     private final BookCopyRepository bookCopyRepository;
+    private final BookRepository bookRepository;
     private final SubscriptionRepository subscriptionRepository;
     private final UserRepository userRepository;
     private final JavaMailSender emailSender;
 
     @Autowired
 
-    public SubscriptionService(BookCopyRepository bookCopyRepository, SubscriptionRepository subscriptionRepository,
+    public SubscriptionService(BookCopyRepository bookCopyRepository, BookRepository bookRepository, SubscriptionRepository subscriptionRepository,
                                UserRepository userRepository, JavaMailSender emailSender) {
         this.bookCopyRepository = bookCopyRepository;
+        this.bookRepository = bookRepository;
         this.subscriptionRepository = subscriptionRepository;
         this.userRepository = userRepository;
         this.emailSender = emailSender;
     }
 
-    public void subscribeToBookCopy(int bookCopyId, String userId) {
-        // Check if the book copy exists
-        BookCopy bookCopy = bookCopyRepository.findById(bookCopyId)
-                .orElseThrow(() -> new IllegalArgumentException("Book copy not found"));
+    public void subscribeToBook(int bookId, String userId) {
+        // Check if the book exists
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new IllegalArgumentException("Book not found"));
+
+        // Check for existing active subscription
+        Optional<Subscription> existing = subscriptionRepository.findByBook_BookIdAndUserId(bookId, userId);
+        if (existing.isPresent() && existing.get().isActive()) {
+            throw new IllegalArgumentException("You are already subscribed to this book");
+        }
+
+        // Reactivate if inactive, otherwise create new
+        if (existing.isPresent()) {
+            Subscription sub = existing.get();
+            sub.setActive(true);
+            subscriptionRepository.save(sub);
+            return;
+        }
 
         // Create a new subscription
         Subscription subscription = new Subscription();
-        subscription.setBookCopy(bookCopy);
+        subscription.setBook(book);
         subscription.setUser(userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found")));
         subscription.setActive(true);
@@ -47,7 +66,7 @@ public class SubscriptionService {
         subscriptionRepository.save(subscription);
     }
 
-    public void unsubscribeFromBookCopy(Integer subscriptionId) {
+    public void unsubscribeFromBook(Integer subscriptionId) {
         // Find the subscription
         Subscription subscription = subscriptionRepository.findById(subscriptionId)
                 .orElseThrow(() -> new IllegalArgumentException("Subscription not found"));
@@ -57,8 +76,8 @@ public class SubscriptionService {
         subscriptionRepository.save(subscription);
     }
 
-    public void cancelSubscriptionAfterBorrowing(int bookCopyId, String userId) {
-        Subscription subscription = subscriptionRepository.findByBookCopyIdAndUserId(bookCopyId, userId)
+    public void cancelSubscriptionAfterBorrowing(int bookId, String userId) {
+        Subscription subscription = subscriptionRepository.findByBook_BookIdAndUserId(bookId, userId)
                 .orElse(null);
 
         if (subscription != null) {
@@ -71,23 +90,28 @@ public class SubscriptionService {
         // Lấy tất cả các đăng ký đang hoạt động
         List<Subscription> subscriptions = subscriptionRepository.findAllByActive(true);
 
-        // Gửi thông báo cho từng người dùng
+        // Gửi thông báo cho từng người dùng nếu sách có bản sao khả dụng
         for (Subscription subscription : subscriptions) {
-            String email = subscription.getUser().getEmail();
-            System.out.println("Notification sent to: " + email);
-            this.sendEmail(email,
-                    "The book copy you subscribed to is now available. Book Title: "
-                            + subscription.getBookCopy().getOriginalBook().getTitle()
-                            + ", Copy ID: " + subscription.getBookCopy().getId());
+            Book book = subscription.getBook();
+            boolean hasAvailableCopy = bookCopyRepository.findByOriginalBook_BookId(book.getBookId()).stream()
+                    .anyMatch(copy -> copy.getStatus().equals(vn.edu.hust.nmcnpm_20242_n3.constant.BookCopyStatusEnum.AVAILABLE));
+
+            if (hasAvailableCopy) {
+                String email = subscription.getUser().getEmail();
+                System.out.println("Notification sent to: " + email);
+                this.sendEmail(email,
+                        "The book you subscribed to is now available. Book Title: "
+                                + book.getTitle());
+            }
         }
     }
 
-    public void notifyUsersByBookCopy(int bookCopyId) {
-        // Lấy tất cả các đăng ký cho bản sao sách cụ thể
-        List<Subscription> subscriptions = subscriptionRepository.findAllByBookCopyIdAndActive(bookCopyId, true);
+    public void notifyUsersByBook(int bookId) {
+        // Lấy tất cả các đăng ký cho sách cụ thể
+        List<Subscription> subscriptions = subscriptionRepository.findAllByBook_BookIdAndActive(bookId, true);
 
         if (subscriptions.isEmpty()) {
-            System.out.println("No subscriptions found for book copy with ID: " + bookCopyId);
+            System.out.println("No subscriptions found for book with ID: " + bookId);
             return;
         }
 
@@ -96,9 +120,8 @@ public class SubscriptionService {
             String email = subscription.getUser().getEmail();
             System.out.println("Notification sent to: " + email);
             this.sendEmail(email,
-                    "The book copy you subscribed to is now available. Book Title: "
-                            + subscription.getBookCopy().getOriginalBook().getTitle()
-                            + ", Copy ID: " + subscription.getBookCopy().getId());
+                    "The book you subscribed to is now available. Book Title: "
+                            + subscription.getBook().getTitle());
         }
     }
 
@@ -115,18 +138,8 @@ public class SubscriptionService {
         }
     }
 
-    public List<BookCopy> getUserBookCopies(String userId) {
-        // Lấy tất cả các đăng ký của người dùng
-        List<Subscription> subscriptions = subscriptionRepository.findAllByUserId(userId);
-
-        if (subscriptions.isEmpty()) {
-            return List.of(); // Trả về danh sách rỗng nếu không có đăng ký nào
-        }
-
-        // Trả về danh sách các bản sao sách từ các đăng ký
-        return subscriptions.stream()
-                .map(Subscription::getBookCopy)
-                .toList();
+    public List<Subscription> getUserSubscriptions(String userId) {
+        return subscriptionRepository.findAllByUserId(userId);
     }
 
     @Scheduled(cron = "0 0 4 * * ?")

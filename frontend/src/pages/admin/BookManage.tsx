@@ -8,13 +8,10 @@ import { Book } from "../../data/books.ts";
 import { Author } from "../../data/authors.ts";
 import { Category } from "../../data/categories.ts";
 import { Publisher } from "../../data/publishers.ts";
-import { STORAGE_KEY_PREFIX } from "../../services/baseService.ts";
 import bookService from "../../services/bookService.ts";
-
-// Local storage keys
-const AUTHORS_STORAGE_KEY = `${STORAGE_KEY_PREFIX}authors`;
-const CATEGORIES_STORAGE_KEY = `${STORAGE_KEY_PREFIX}categories`;
-const PUBLISHERS_STORAGE_KEY = `${STORAGE_KEY_PREFIX}publishers`;
+import { AuthorService } from "../../services/authorService.ts";
+import { categoryService } from "../../services/categoryService.ts";
+import { publisherService } from "../../services/publisherService.ts";
 
 export default function BookManage() {
     // State lưu chuỗi tìm kiếm
@@ -45,23 +42,16 @@ export default function BookManage() {
                 const booksData = await bookService.getAll();
                 setBooks(booksData);
                 
-                // Load authors from localStorage
-                const storedAuthors = localStorage.getItem(AUTHORS_STORAGE_KEY);
-                if (storedAuthors) {
-                    setAuthors(JSON.parse(storedAuthors));
-                }
+                // Load authors, categories, publishers from API
+                const [authorsData, categoriesData, publishersData] = await Promise.all([
+                    AuthorService.getAll(),
+                    categoryService.getAll(),
+                    publisherService.getAll()
+                ]);
                 
-                // Load categories from localStorage
-                const storedCategories = localStorage.getItem(CATEGORIES_STORAGE_KEY);
-                if (storedCategories) {
-                    setCategories(JSON.parse(storedCategories));
-                }
-                
-                // Load publishers from localStorage
-                const storedPublishers = localStorage.getItem(PUBLISHERS_STORAGE_KEY);
-                if (storedPublishers) {
-                    setPublishers(JSON.parse(storedPublishers));
-                }
+                setAuthors(authorsData);
+                setCategories(categoriesData);
+                setPublishers(publishersData);
             } catch (error) {
                 console.error("Error loading data:", error);
             } finally {
@@ -76,20 +66,20 @@ export default function BookManage() {
     const filteredBooks = books.filter((book) => {
         const lowerSearch = search.toLowerCase();
 
-        const titleMatch = book.title.toLowerCase().includes(lowerSearch);
+        const titleMatch = book.title?.toLowerCase().includes(lowerSearch) || false;
 
         // Tìm tên tác giả trong mảng authorIds của sách
-        const authorMatch = book.authorIds.some(id =>
-            authors.find(a => a.id === id)?.name.toLowerCase().includes(lowerSearch)
-        );
+        const authorMatch = book.authorIds?.some(id =>
+            authors.find(a => a.id === id)?.name?.toLowerCase().includes(lowerSearch)
+        ) || false;
 
         // Tìm tên danh mục trong mảng categoryIds
-        const categoryMatch = book.categoryIds.some(id =>
-            categories.find(c => c.id === id)?.name.toLowerCase().includes(lowerSearch)
-        );
+        const categoryMatch = book.categoryIds?.some(id =>
+            categories.find(c => c.id === id)?.name?.toLowerCase().includes(lowerSearch)
+        ) || false;
 
         // Tìm tên nhà xuất bản
-        const publisherMatch = publishers.find(p => p.id === book.publisherId)?.name.toLowerCase().includes(lowerSearch);
+        const publisherMatch = publishers.find(p => p.id === book.publisherId)?.name?.toLowerCase().includes(lowerSearch) || false;
 
         return titleMatch || authorMatch || categoryMatch || publisherMatch;
     });

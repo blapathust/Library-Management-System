@@ -11,6 +11,7 @@ export const BookRequestService = {
   
   // Get requests by user
   getByUser: async (userId: string | null): Promise<BookRequest[]> => {
+    if (!userId) return [];
     try {
       const response = await api.get(`/api/requests/user/${userId}`);
       return response.data;

@@ -54,7 +54,7 @@ export default function AdminNavbar({ selected = "dashboard" }: { selected?: str
                     }`}
             >
                 <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-                    <h1 className="text-xl font-bold text-purple-700">Admin Portal</h1>
+                    <h1 className="text-xl font-bold text-purple-700">Library Management System</h1>
                     <div className="flex space-x-3 items-center">
 
                         <Link key="Dashboard" to="/admin" className={getNavLinkClass("dashboard")}>

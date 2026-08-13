@@ -40,7 +40,7 @@ export default function UserNavbar({ selected = "home" }: { selected?: string })
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-          <h1 className="text-xl font-bold text-blue-700">Library Portal</h1>
+          <h1 className="text-xl font-bold text-blue-700">Library Management System</h1>
           <div className="flex space-x-3">
             <Link to="/user" className={getNavLinkClass("home")}>
               Home

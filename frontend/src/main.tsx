@@ -6,7 +6,6 @@ import './index.css'
 import App from './App.tsx'
 import Login from './pages/auth/Login.tsx'
 import Register from './pages/auth/Register.tsx'
-import UserPage from './pages/user/UserPage.tsx'
 import UserProfile from './pages/user/UserProfile.tsx'
 import UserBookSearch from './pages/user/UserBookSearch.tsx'
 import UserRequest from './pages/user/UserRequest.tsx'
@@ -31,6 +30,7 @@ import AdminProfile from './pages/admin/AdminProfile.tsx'
 import ProtectedRoute from './components/ProtectedRoute.tsx'
 import { AuthProvider } from './components/AuthProvider.tsx'
 import UserDashboard from './pages/user/UserDashboard.tsx'
+import LogoutRoute from './components/LogoutRoute.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -40,9 +40,9 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/" element={<App />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/logout" element={<Navigate to="/" replace />} />
+          <Route path="/logout" element={<LogoutRoute />} />
 
-          {/* User routes */}
+          {/* User routes — any authenticated user */}
           <Route path="/user" element={<ProtectedRoute><div><UserRouteTracker /><Outlet /></div></ProtectedRoute>}>
             <Route index element={<Navigate to="home" replace />} />
             <Route path="home" element={<UserDashboard />} />
@@ -54,8 +54,8 @@ createRoot(document.getElementById('root')!).render(
             <Route path="profile" element={<UserProfile />} />
           </Route>
 
-          {/* Admin routes */}
-          <Route path="/admin" element={<ProtectedRoute><div><Outlet /></div></ProtectedRoute>}>
+          {/* Admin routes — requires ADMIN or STAFF role */}
+          <Route path="/admin" element={<ProtectedRoute requiredRole="ADMIN"><div><Outlet /></div></ProtectedRoute>}>
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="manage/books" element={<BookManage />} />

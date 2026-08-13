@@ -6,16 +6,14 @@ const fetchData = async <T,> (
   endpoint: string,
   setData?: React.Dispatch<React.SetStateAction<T | null>>,
   setError?: React.Dispatch<React.SetStateAction<string | null>>,
-  options?: { headers?: HeadersInit }
+  options?: { headers?: Record<string, string> }
 ): Promise<T | null> => {
   try {
     const defaultHeaders = { 'Content-Type': 'application/json' };
     const headers = { ...defaultHeaders, ...options?.headers };
 
-    const response = await api.get(`${endpoint}`, { headers: headers });
-    if (!(response.status >= 200 && response.status < 300)) {
-      throw new Error("HTTP error " + response.status);
-    }
+    const response = await api.get(`${endpoint}`, { headers });
+    // Axios already throws on non-2xx, so no manual status check needed
 
     const data: T = response.data;
     if (setData) setData(data);
@@ -25,7 +23,6 @@ const fetchData = async <T,> (
   catch (error) {
     if (setData) setData(null);
     if (setError) setError("Error fetching data: " + error);
-    console.error("Error fetching data:", error);
     return null;
   }
 };
@@ -49,7 +46,7 @@ export const useFetchData = <T,>(endpoint: string) => {
 export const usePollingData = <T,>(
   endpoint: string, 
   interval: number = 60000,
-  options? : { headers?: HeadersInit }
+  options? : { headers?: Record<string, string> }
 ) => {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -69,14 +66,15 @@ export const usePollingData = <T,>(
     
     // Clean up
     return () => clearInterval(intervalId);
-  }, [endpoint, interval, options]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [endpoint, interval]);
 
   return { data, loading, error };
 };
 
 // Manual fetch trigger hook
 export const useManualFetch = <T,>(
-  options?: { headers?: HeadersInit }
+  options?: { headers?: Record<string, string> }
 ) => {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -87,7 +85,8 @@ export const useManualFetch = <T,>(
     const result = await fetchData<T>(endpoint, setData, setError, options);
     setLoading(false);
     return result;
-  }, [options]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return { data, loading, error, execute };
 };

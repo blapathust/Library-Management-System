@@ -63,36 +63,4 @@ export const DashboardService = {
       return defaultMetrics;
     }
   },
-  
-//   // Get trending titles
-//   getTrendingTitles: async () => {
-//     try {
-//       const response = await api.get('/api/metrics/trending/titles');
-//       return response.data;
-//     } catch (error) {
-//       console.error('Error fetching trending titles:', error);
-//       // Return mock data as fallback
-//       return Array(5).fill(0).map((_, i) => ({
-//         id: i + 1,
-//         title: `Title ${i + 1}`,
-//         views: 1000 - i * 100
-//       }));
-//     }
-//   },
-  
-//   // Get trending categories
-//   getTrendingCategories: async () => {
-//     try {
-//       const response = await api.get('/api/metrics/trending/categories');
-//       return response.data;
-//     } catch (error) {
-//       console.error('Error fetching trending categories:', error);
-//       // Return mock data as fallback
-//       return Array(5).fill(0).map((_, i) => ({
-//         id: i + 1,
-//         name: `Category ${i + 1}`,
-//         views: 500 - i * 50
-//       }));
-//     }
-//   }
 };

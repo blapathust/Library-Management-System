@@ -60,6 +60,8 @@ export default function UserProfile() {
             
             // Update profile
             const updatedProfile = await userService.updateUser(profile.id, {
+                userName: profile.userName,
+                roleName: profile.roleName,
                 name: editedName,
                 email: editedEmail
             });
