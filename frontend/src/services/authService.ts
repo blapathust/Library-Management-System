@@ -3,7 +3,8 @@ import api from '../api/axios';
 // Cache for authentication status
 let authCache = {
   isAuthenticated: false,
-  timestamp: 0
+  timestamp: 0,
+  userData: null as any
 };
 
 // Maximum age of cached auth status in milliseconds (1 minute)
@@ -26,6 +27,9 @@ const clearCookie = (name: string): void => {
 const authService = {
   // Get the current user ID
   getCurrentUserId: (): string | null => {
+    if (authCache.userData && authCache.userData.id) {
+      return authCache.userData.id;
+    }
     try {
       const userId = getCookie('USERID');
       return userId || null;
@@ -37,6 +41,9 @@ const authService = {
   
   // Get the current username
   getCurrentUsername: (): string => {
+    if (authCache.userData && authCache.userData.userName) {
+      return authCache.userData.userName;
+    }
     try {
       const username = getCookie('USERNAME');
       if (username) {
@@ -51,6 +58,9 @@ const authService = {
 
   // Get the current user role
   getCurrentRole: (): string | null => {
+    if (authCache.userData && authCache.userData.roleName) {
+      return authCache.userData.roleName;
+    }
     try {
       const role = getCookie('ROLE');
       return role || null;
@@ -74,7 +84,8 @@ const authService = {
       // Update cache
       authCache = {
         isAuthenticated: response.status === 200,
-        timestamp: now
+        timestamp: now,
+        userData: response.data
       };
       
       return authCache.isAuthenticated;
@@ -82,7 +93,8 @@ const authService = {
       // Update cache for failed auth
       authCache = {
         isAuthenticated: false,
-        timestamp: now
+        timestamp: now,
+        userData: null
       };
       
       return false;
@@ -105,7 +117,7 @@ const authService = {
       if (response.status >= 200 && response.status < 300) {
         sessionStorage.setItem('AUTHORIZATION', response.data);
         // Clear auth cache on successful login
-        authCache = { isAuthenticated: true, timestamp: Date.now() };
+        authCache = { isAuthenticated: true, timestamp: Date.now(), userData: null };
         return true;
       }
       return false;
@@ -130,7 +142,7 @@ const authService = {
     clearCookie('JSESSIONID');
     sessionStorage.removeItem('AUTHORIZATION');
     // Clear auth cache on logout
-    authCache = { isAuthenticated: false, timestamp: Date.now() };
+    authCache = { isAuthenticated: false, timestamp: Date.now(), userData: null };
   },
 
   register: async (name: string, username: string, password: string, email: string): Promise<{ success: boolean; message?: string }> => {
