@@ -71,10 +71,10 @@ const authService = {
   },
   
   // Check if user is authenticated
-  isAuthenticated: async (): Promise<boolean> => {
+  isAuthenticated: async (force = false): Promise<boolean> => {
     // Use cached value if still valid
     const now = Date.now();
-    if (authCache.timestamp > 0 && now - authCache.timestamp < AUTH_CACHE_MAX_AGE) {
+    if (!force && authCache.timestamp > 0 && now - authCache.timestamp < AUTH_CACHE_MAX_AGE) {
       return authCache.isAuthenticated;
     }
     
