@@ -41,8 +41,8 @@ services:
   graphite:
     image: 'graphiteapp/graphite-statsd:latest'
     ports:
-      # Only expose the web interface
-      - '81:80'
+      # Only expose the web interface to localhost (blocks public internet access)
+      - '127.0.0.1:81:80'
       # Do not expose statsd UDP port 8125 to the host; the app container accesses it via the docker network
     volumes:
       - graphite_data:/opt/graphite/storage
