@@ -1,6 +1,6 @@
 # Library Management System
 
-A comprehensive, modern Library Management System built with a Spring Boot backend and a React (Vite) frontend.
+A comprehensive, modern Library Management System built with a Spring Boot backend and a React (Vite) frontend, intended for desktop browsers.
 
 ## Demo
 
