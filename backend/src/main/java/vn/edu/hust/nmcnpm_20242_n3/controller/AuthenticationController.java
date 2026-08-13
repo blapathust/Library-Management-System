@@ -32,18 +32,21 @@ public class AuthenticationController {
     private final AuthenticationService authenticationService;
     private final MeterRegistry meterRegistry;
     private final boolean cookieSecure;
+    private final String cookieDomain;
 
     public AuthenticationController(
             AuthenticationManager authManager,
             UserService userService,
             AuthenticationService authenticationService,
             MeterRegistry meterRegistry,
-            @Value("${COOKIE_SECURE:false}") boolean cookieSecure) {
+            @Value("${COOKIE_SECURE:false}") boolean cookieSecure,
+            @Value("${COOKIE_DOMAIN:}") String cookieDomain) {
         this.authManager = authManager;
         this.userService = userService;
         this.authenticationService = authenticationService;
         this.meterRegistry = meterRegistry;
         this.cookieSecure = cookieSecure;
+        this.cookieDomain = cookieDomain;
     }
 
     @PostMapping("/login")
@@ -64,29 +67,41 @@ public class AuthenticationController {
             String basicAuthValue = Base64.getEncoder().encodeToString(
                     (request.getUsername() + ":" + request.getPassword()).getBytes(StandardCharsets.UTF_8));
 
-            ResponseCookie userIdCookie = ResponseCookie.from("USERID", userId)
+            ResponseCookie.ResponseCookieBuilder userIdCookieBuilder = ResponseCookie.from("USERID", userId)
                     .httpOnly(false) // Allow client-side access for user ID
                     .secure(cookieSecure)
                     .sameSite("Lax")
                     .path("/")
-                    .maxAge(3600 * 24 * 30) // 1 month
-                    .build();
+                    .maxAge(3600 * 24 * 30); // 1 month
+            
+            if (cookieDomain != null && !cookieDomain.isEmpty()) {
+                userIdCookieBuilder.domain(cookieDomain);
+            }
+            ResponseCookie userIdCookie = userIdCookieBuilder.build();
 
-            ResponseCookie userNameCookie = ResponseCookie.from("USERNAME", request.getUsername())
+            ResponseCookie.ResponseCookieBuilder userNameCookieBuilder = ResponseCookie.from("USERNAME", request.getUsername())
                     .httpOnly(false) // Allow client-side access for username
                     .secure(cookieSecure)
                     .sameSite("Lax")
                     .path("/")
-                    .maxAge(3600 * 24 * 30) // 1 month
-                    .build();
+                    .maxAge(3600 * 24 * 30); // 1 month
+            
+            if (cookieDomain != null && !cookieDomain.isEmpty()) {
+                userNameCookieBuilder.domain(cookieDomain);
+            }
+            ResponseCookie userNameCookie = userNameCookieBuilder.build();
 
-            ResponseCookie roleCookie = ResponseCookie.from("ROLE", userDetails.get().getRoleName())
+            ResponseCookie.ResponseCookieBuilder roleCookieBuilder = ResponseCookie.from("ROLE", userDetails.get().getRoleName())
                     .httpOnly(false) // Allow client-side access for role
                     .secure(cookieSecure)
                     .sameSite("Lax")
                     .path("/")
-                    .maxAge(3600 * 24 * 30) // 1 month
-                    .build();
+                    .maxAge(3600 * 24 * 30); // 1 month
+            
+            if (cookieDomain != null && !cookieDomain.isEmpty()) {
+                roleCookieBuilder.domain(cookieDomain);
+            }
+            ResponseCookie roleCookie = roleCookieBuilder.build();
 
             // Increment login metric
             meterRegistry.counter("user.login").increment();
