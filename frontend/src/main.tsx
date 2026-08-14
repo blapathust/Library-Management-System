@@ -55,7 +55,7 @@ createRoot(document.getElementById('root')!).render(
           </Route>
 
           {/* Admin routes — requires ADMIN or STAFF role */}
-          <Route path="/admin" element={<ProtectedRoute requiredRole="ADMIN"><div><Outlet /></div></ProtectedRoute>}>
+          <Route path="/admin" element={<ProtectedRoute requiredRole={["ADMIN", "STAFF"]}><div><Outlet /></div></ProtectedRoute>}>
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="manage/books" element={<BookManage />} />

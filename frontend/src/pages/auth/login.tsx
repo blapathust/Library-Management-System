@@ -1,6 +1,6 @@
 // Trang Login 
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import authService from "../../services/authService";
 import { useAuth } from "../../hooks/useAuth";
 
@@ -11,35 +11,20 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  // Where to navigate after login succeeds and context updates
-  const [loginTarget, setLoginTarget] = useState<string | null>(null);
   
   const navigate = useNavigate();
-  const location = useLocation();
-  const { isAuthenticated, role: authRole, isLoading: authLoading, checkAuthStatus } = useAuth();
+  const { isAuthenticated, role: authRole, isLoading: authLoading } = useAuth();
 
   // Kiểm tra role hiện tại có phải là admin không
   const isAdmin = role === "admin";
 
-  // Get the return URL from state or default to /user
-  const from = location.state?.from || '/user';
-
-  // Navigate ONLY after the auth context has actually updated
-  useEffect(() => {
-    if (loginTarget && !authLoading && isAuthenticated) {
-      console.log('Auth context updated, navigating to:', loginTarget);
-      navigate(loginTarget, { replace: true });
-      setLoginTarget(null);
-    }
-  }, [loginTarget, isAuthenticated, authLoading, navigate]);
-
   // If user is already authenticated, redirect them away from login
   useEffect(() => {
-    if (!authLoading && isAuthenticated && !loginTarget) {
-      const target = authRole === 'ADMIN' ? '/admin' : '/user';
+    if (!authLoading && isAuthenticated) {
+      const target = (authRole === 'ADMIN' || authRole === 'STAFF') ? '/admin' : '/user';
       navigate(target, { replace: true });
     }
-  }, [isAuthenticated, authLoading, authRole, navigate, loginTarget]);
+  }, [isAuthenticated, authLoading, authRole, navigate]);
 
   // Handle login submission
   const handleLogin = async (e: React.FormEvent) => {
@@ -51,13 +36,11 @@ export default function LoginPage() {
       const success = await authService.login(username, password);
       
       if (success) {
-        // Set where we want to go — the useEffect will navigate
-        // once the auth context has actually committed the new state
-        const target = isAdmin ? "/admin" : "/user";
-        setLoginTarget(target);
-        
-        // Trigger the auth context to re-fetch (state updates are async)
-        await checkAuthStatus(true);
+        // Full page reload to the target route.
+        // This completely avoids React state timing issues —
+        // AuthProvider re-initializes cleanly on the fresh page load.
+        window.location.href = isAdmin ? "/admin" : "/user";
+        return; // Don't setLoading(false), page is reloading
       } else {
         setError("Invalid username or password");
       }
