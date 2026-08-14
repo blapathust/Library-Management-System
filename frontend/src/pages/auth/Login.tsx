@@ -1,6 +1,6 @@
 // Trang Login 
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import authService from "../../services/authService";
 import { useAuth } from "../../hooks/useAuth";
 
@@ -13,29 +13,18 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   
   const navigate = useNavigate();
-  const location = useLocation();
-  const { checkAuthStatus } = useAuth();
+  const { isAuthenticated, role: authRole, isLoading: authLoading } = useAuth();
 
   // Kiểm tra role hiện tại có phải là admin không
   const isAdmin = role === "admin";
 
-  // Get the return URL from state or default to /user
-  const from = location.state?.from || '/user';
-
-  // useEffect(() => {
-  //   // Kiểm tra nếu đã đăng nhập thì chuyển hướng về trang tương ứng
-  //   const checkLoginStatus = async () => {
-  //     if (document.cookie) {
-  //       const isAuthenticated = await authService.isAuthenticated();
-  //       if (isAuthenticated) {
-  //         // Nếu đã đăng nhập, chuyển hướng đến trang tương ứng
-  //         navigate(isAdmin ? '/admin' : '/user', { replace: true });
-  //       }
-  //     }
-  //   };
-
-  //   checkLoginStatus();
-  // }, [isAdmin, navigate]);
+  // If user is already authenticated, redirect them away from login
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      const target = (authRole === 'ADMIN' || authRole === 'STAFF') ? '/admin' : '/user';
+      navigate(target, { replace: true });
+    }
+  }, [isAuthenticated, authLoading, authRole, navigate]);
 
   // Handle login submission
   const handleLogin = async (e: React.FormEvent) => {
@@ -47,12 +36,11 @@ export default function LoginPage() {
       const success = await authService.login(username, password);
       
       if (success) {
-        // After successful login, update the auth context
-        await checkAuthStatus();
-        
-        // Then navigate to the return URL
-        console.log('Login successful, redirecting to:', from);
-        navigate(isAdmin ? "/admin" : "/user", { replace: true });
+        // Full page reload to the target route.
+        // This completely avoids React state timing issues —
+        // AuthProvider re-initializes cleanly on the fresh page load.
+        window.location.href = isAdmin ? "/admin" : "/user";
+        return; // Don't setLoading(false), page is reloading
       } else {
         setError("Invalid username or password");
       }
@@ -94,10 +82,9 @@ export default function LoginPage() {
           </button>
         </div>
 
-        {/* Tiêu đề của trang, thay đổi text và màu theo role */}
         <h2 className={`text-3xl font-bold text-center mb-6 ${isAdmin ? "text-purple-700" : "text-blue-700"
           }`}>
-          {isAdmin ? "Admin Portal Login" : "Login to Library"}
+          {isAdmin ? "Admin Login" : "Login to Library Management System"}
         </h2>
 
         {/* Display error message if any */}
