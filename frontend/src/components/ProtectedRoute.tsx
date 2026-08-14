@@ -3,7 +3,7 @@ import { useAuth } from '../hooks/useAuth';
 
 interface ProtectedRouteProps {
   redirectPath?: string;
-  requiredRole?: string;
+  requiredRole?: string | string[];
   children?: React.ReactNode;
 }
 
@@ -33,9 +33,12 @@ const ProtectedRoute = ({
     />;
   }
 
-  // If a role is required, check it
-  if (requiredRole && role !== requiredRole) {
-    return <Navigate to="/" replace />;
+  // If a role is required, check it (supports single role or array of roles)
+  if (requiredRole) {
+    const allowedRoles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
+    if (!role || !allowedRoles.includes(role)) {
+      return <Navigate to="/" replace />;
+    }
   }
 
   // If authenticated (and role matches), render the protected content

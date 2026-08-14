@@ -21,7 +21,7 @@ export default function LoginPage() {
   // If user is already authenticated, redirect them away from login
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
-      const target = authRole === 'ADMIN' ? '/admin' : '/user';
+      const target = (authRole === 'ADMIN' || authRole === 'STAFF') ? '/admin' : '/user';
       navigate(target, { replace: true });
     }
   }, [isAuthenticated, authLoading, authRole, navigate]);
