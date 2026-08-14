@@ -107,7 +107,7 @@ const authService = {
       // If we don't do this, Axios will attach the old token to the login request,
       // and Spring Security's BasicAuthenticationFilter will return 401 before
       // the controller even receives the new credentials.
-      sessionStorage.removeItem('AUTHORIZATION');
+      localStorage.removeItem('AUTHORIZATION');
 
       const response = await api.post('/api/auth/login', {
         username,
@@ -115,7 +115,7 @@ const authService = {
       });
       
       if (response.status >= 200 && response.status < 300) {
-        sessionStorage.setItem('AUTHORIZATION', response.data);
+        localStorage.setItem('AUTHORIZATION', response.data);
         // Clear auth cache on successful login
         authCache = { isAuthenticated: true, timestamp: Date.now(), userData: null };
         return true;
@@ -140,7 +140,7 @@ const authService = {
     clearCookie('USERNAME');
     clearCookie('ROLE');
     clearCookie('JSESSIONID');
-    sessionStorage.removeItem('AUTHORIZATION');
+    localStorage.removeItem('AUTHORIZATION');
     // Clear auth cache on logout
     authCache = { isAuthenticated: false, timestamp: Date.now(), userData: null };
   },
